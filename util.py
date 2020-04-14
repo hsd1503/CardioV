@@ -11,23 +11,15 @@ def cpsc_preprocess():
     # read label
     label_df = pd.read_csv('ecg_data/CPSC/REFERENCE.csv', header=0)
     label = label_df.iloc[:,1:].values
-    # print(label)
 
     # read data
     cpsc_data = []
     filenames = label_df.iloc[:,0].values
-    # print(filenames)
     for filename in tqdm(filenames):
         mat = scipy.io.loadmat('./ecg_data/CPSC/TrainningSet/{0}.mat'.format(filename))
-        # print(mat, type(mat), mat.keys())
-        #ndarray
-        # print(type(mat))
         mat = np.array(mat['ECG'][0][0][-1].T)
-        # print(mat, type(mat), mat.shape)
         cpsc_data.append(mat)
     cpsc_data = np.array(cpsc_data)
-    # print(cpsc_data[:2])
-    # print(cpsc_data.shape, type(cpsc_data))
     # cpsc_db1
     res_1 = {'data': cpsc_data[:2000], 'label': label[:2000]}
     with open('ecg_data/CPSC/cpsc_raw_1.pkl', 'wb') as fin:
@@ -55,9 +47,6 @@ def ptb_preprocess():
         # print(data[i].shape)
         comments.append(data['comments'][i])
     ptb_data = np.array(ptb_data)
-    # print(ptb_data[:2])
-    # print(ptb_data.shape)
-    # print(type(ptb_data))
     disease_list = [['Myocardial infarction'], ['Healthy control'], ['Heart failure', 'Cardiomyopathy'],
                     ['Bundle branch block'], ['Dysrhythmia'], ['Hypertrophy'], ['Valvular heart disease'],
                     ['Myocarditis']]
@@ -71,12 +60,10 @@ def ptb_preprocess():
             for d in disease:
                 if d in txt_disease:
                     tmp_label[i] = 1
-                    # print(tmp_label)
                     all_disease.append(tmp_label)
                     flag = True
                     break
         if flag == False:
-            # print(tmp_label)
             all_disease.append(tmp_label)
     all_disease = np.array(all_disease)
     print(type(all_disease))
@@ -97,15 +84,12 @@ def incart_preprocess():
         all_record_name = fin.read().strip().split('\n')
     for record_name in all_record_name:
         tmp_data_res = wfdb.rdsamp(db_path + record_name)
-        # print(type(tmp_data_res))
         incart_data.append(tmp_data_res[0])
         comments.append(tmp_data_res[1]['comments'])
         print(tmp_data_res[0])
         print(tmp_data_res[0].shape)
-        # print(tmp_data_res[1]['comments'][0])
     incart_data = np.array(incart_data)
     print(incart_data.shape)
-
     disease_list = [['Acute MI'], ['Transient ischemic attack'], ['Earlier MI'],
                     ['Coronary artery disease'], ['Sinus node dysfunction'], ['Supraventricular ectopy'],
                     ['Atrial fibrillation or SVTA'], ['WPW'], ['AV block'], ['Bundle branch block']]
@@ -124,7 +108,6 @@ def incart_preprocess():
                     flag = True
                     break
         if flag == False:
-            # print(tmp_label)
             all_disease.append(tmp_label)
     all_disease = np.array(all_disease)
     print(type(all_disease))
@@ -335,67 +318,6 @@ def read_data_with_train_val_test(window_size=5000, stride=500):
     # return X_train, X_val, X_test, Y_train, Y_val, Y_test, pid_val, pid_test
 
 if __name__ == '__main__':
-    # cpsc_preprocess()
-    # with open('./ecg_data/CPSC/cpsc_raw_3.pkl', 'rb') as f:
-    #     file = dill.load(f)
-    #     print(file.keys)
-    #     print('+'*30)
-    #     print(file['data'].shape)
-    #     print(file['data'][:2])
-    #     print(file['label'], file['label'].shape)
-
-    # ptb_preprocess()
-    # with open('./ecg_data/PTBDB/ptb_raw_2.pkl', 'rb') as fout:
-    #
-    #     res = dill.load(fout)
-    #     print(res.keys)
-    #     print(res['data'][0], res['data'][0].shape)
-    #     print(res['label'][4])
-    #     print(res['label'][200])
-    #     print(res['data'].shape)
-
-    # incart_preprocess()
-    # with open('./ecg_data/incartdb/incartdb/incart_raw_1.pkl', 'rb') as fout:
-    #     res = dill.load(fout)
-    #     print(res.keys)
-    #     print(res['data'][0], res['data'][0].shape)
-    #     print(res['label'][:10])
-    #     print(res['data'][:2])
-    #     print(res['data'].shape)
-
-
-    # cpsc_alter_label()
-    # with open('./ecg_data/CPSC/cpsc_raw_1_1.pkl', 'rb') as fout:
-    #     res = dill.load(fout)
-    #     print(res['data'].shape)
-    #     print(res['label'].shape)
-    #     print(res['data'][0])
-    #     print(res['label'][:10])
-
-
-    # ptb_alter_label()
-    # with open('./ecg_data/PTBDB/ptb_raw_2_1.pkl', 'rb') as fout:
-    #     res = dill.load(fout)
-    #     print(res['data'].shape)
-    #     print(res['label'].shape)
-    #     print(res['data'][0])
-    #     print(res['label'][:5])
-    #     print(Counter(res['label'][:,0]))
-    #     print(Counter(res['label'][:,1]))
-    #     print(Counter(res['label'][:,2]))
-    #     print(Counter(res['label'][:,3]))
-
-    # incart_alter_label()
-    # with open('./ecg_data/incartdb/incartdb/incart_raw_2_1.pkl', 'rb') as fout:
-    #     res = dill.load(fout)
-    #     print(res['data'].shape)
-    #     print(res['label'].shape)
-    #     print(res['data'][0])
-    #     print(res['label'][:5])
-    #     print(Counter(res['label'][:,0]))
-    #     print(Counter(res['label'][:,1]))
-    #     print(Counter(res['label'][:,2]))
-    #     print(Counter(res['label'][:,3]))
 
     # read_data_with_train_val_test()
     merge_db()
