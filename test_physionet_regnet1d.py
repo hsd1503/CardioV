@@ -102,27 +102,6 @@ def run_exp(base_filters, filter_list, m_blocks_list):
         all_pred_prob = np.concatenate(all_pred_prob)
         all_pred = np.sum(all_pred_prob, axis=1) - 1
         # print(all_pred.shape)
-        ## vote most common
-        # print(Y_val.shape, type(Y_val))
-        Y_val_value = np.sum(Y_val, axis=1) - 1
-        final_pred = []
-        final_gt = []
-        print(pid_val.shape)
-        for i_pid in np.unique(pid_val):
-            tmp_pred = all_pred[pid_val == i_pid]
-            tmp_gt = Y_val_value[pid_val == i_pid]
-            final_pred.append(Counter(tmp_pred).most_common(1)[0][0])
-            final_gt.append(Counter(tmp_gt).most_common(1)[0][0])
-        ## classification report
-        tmp_report = classification_report(final_gt, final_pred, output_dict=True)
-        print(confusion_matrix(final_gt, final_pred))
-        f1_score = (tmp_report['0']['f1-score'] + tmp_report['1']['f1-score'] + tmp_report['2']['f1-score'] +
-                    tmp_report['3']['f1-score']) / 4
-        writer.add_scalar('F1/f1_score', f1_score, _)
-        writer.add_scalar('F1/label_0', tmp_report['0']['f1-score'], _)
-        writer.add_scalar('F1/label_1', tmp_report['1']['f1-score'], _)
-        writer.add_scalar('F1/label_2', tmp_report['2']['f1-score'], _)
-        writer.add_scalar('F1/label_3', tmp_report['3']['f1-score'], _)
 
         # test
         model.eval()
@@ -137,25 +116,6 @@ def run_exp(base_filters, filter_list, m_blocks_list):
                 all_pred_prob.append(pred)
         all_pred_prob = np.concatenate(all_pred_prob)
         all_pred = np.sum(all_pred_prob, axis=1) - 1
-        ## vote most common
-        Y_test_value = np.sum(Y_test, axis=1) - 1
-        final_pred = []
-        final_gt = []
-        for i_pid in np.unique(pid_test):
-            tmp_pred = all_pred[pid_test == i_pid]
-            tmp_gt = Y_test_value[pid_test == i_pid]
-            final_pred.append(Counter(tmp_pred).most_common(1)[0][0])
-            final_gt.append(Counter(tmp_gt).most_common(1)[0][0])
-        ## classification report
-        tmp_report = classification_report(final_gt, final_pred, output_dict=True)
-        print(confusion_matrix(final_gt, final_pred))
-        f1_score = (tmp_report['0']['f1-score'] + tmp_report['1']['f1-score'] + tmp_report['2']['f1-score'] +
-                    tmp_report['3']['f1-score']) / 4
-        writer.add_scalar('F1/f1_score', f1_score, _)
-        writer.add_scalar('F1/label_0', tmp_report['0']['f1-score'], _)
-        writer.add_scalar('F1/label_1', tmp_report['1']['f1-score'], _)
-        writer.add_scalar('F1/label_2', tmp_report['2']['f1-score'], _)
-        writer.add_scalar('F1/label_3', tmp_report['3']['f1-score'], _)
 
 
 if __name__ == "__main__":
