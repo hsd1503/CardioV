@@ -29,14 +29,21 @@ class MyDataset(Dataset):
     def alter_label(self, labels):
         label_list = []
         for label in labels:
+            ### 正常
             if list(label)==[0, 0, 0, 1]:
                 label = [1, 0, 0, 0]
+            ### 轻度
             elif list(label)==[0, 0, 1, 0]:
                 label = [1, 1, 0, 0]
+            ### 中度
             elif list(label)==[0, 1, 0, 0]:
                 label = [1, 1, 1, 0]
-            else:
+            ### 危急
+            elif list(label)==[1, 0, 0, 0]:
                 label = [1, 1, 1, 1]
+            ### 
+            else:
+                label = [0, 0, 0, 0]
             label_list.append(label)
         return np.array(label_list)
 
