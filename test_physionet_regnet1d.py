@@ -26,9 +26,10 @@ from tensorboardX import SummaryWriter
 from torchsummary import summary
 
 
+
 def run_exp(base_filters, filter_list, m_blocks_list):
     dataset = MyDataset(X_train, Y_train)
-    dataset_val = MyDataset(X_test, Y_test)
+    dataset_val = MyDataset(X_val, Y_val)
     dataset_test = MyDataset(X_test, Y_test)
     dataloader = DataLoader(dataset, batch_size=batch_size)
     dataloader_val = DataLoader(dataset_val, batch_size=batch_size, drop_last=False)
@@ -70,6 +71,7 @@ def run_exp(base_filters, filter_list, m_blocks_list):
         for batch_idx, batch in enumerate(prog_iter):
 
             input_x, input_y = tuple(t.to(device) for t in batch)
+            # print(input_x.data.numpy().shape)
             pred = model(input_x)
             loss = loss_func(pred, input_y)
             optimizer.zero_grad()
@@ -89,16 +91,26 @@ def run_exp(base_filters, filter_list, m_blocks_list):
         with torch.no_grad():
             for batch_idx, batch in enumerate(prog_iter_val):
                 input_x, input_y = tuple(t.to(device) for t in batch)
+                # print(input_x.data.numpy().shape)
                 pred = model(input_x)
-                all_pred_prob.append(pred.cpu().data.numpy())
+                pred = pred.cpu().data.numpy()
+                # print(pred.shape)
+                pred = (pred > 0.5).astype(int)
+                # pred = np.sum(pred, axis=1)
+                # print(pred.shape)
+                all_pred_prob.append(pred)
         all_pred_prob = np.concatenate(all_pred_prob)
-        all_pred = np.argmax(all_pred_prob, axis=1)
+        all_pred = np.sum(all_pred_prob, axis=1) - 1
+        # print(all_pred.shape)
         ## vote most common
+        # print(Y_val.shape, type(Y_val))
+        Y_val_value = np.sum(Y_val, axis=1) - 1
         final_pred = []
         final_gt = []
+        print(pid_val.shape)
         for i_pid in np.unique(pid_val):
             tmp_pred = all_pred[pid_val == i_pid]
-            tmp_gt = Y_val[pid_val == i_pid]
+            tmp_gt = Y_val_value[pid_val == i_pid]
             final_pred.append(Counter(tmp_pred).most_common(1)[0][0])
             final_gt.append(Counter(tmp_gt).most_common(1)[0][0])
         ## classification report
@@ -120,15 +132,18 @@ def run_exp(base_filters, filter_list, m_blocks_list):
             for batch_idx, batch in enumerate(prog_iter_test):
                 input_x, input_y = tuple(t.to(device) for t in batch)
                 pred = model(input_x)
-                all_pred_prob.append(pred.cpu().data.numpy())
+                pred = pred.cpu().data.numpy()
+                pred = (pred > 0.5).astype(int)
+                all_pred_prob.append(pred)
         all_pred_prob = np.concatenate(all_pred_prob)
-        all_pred = np.argmax(all_pred_prob, axis=1)
+        all_pred = np.sum(all_pred_prob, axis=1) - 1
         ## vote most common
+        Y_test_value = np.sum(Y_test, axis=1) - 1
         final_pred = []
         final_gt = []
         for i_pid in np.unique(pid_test):
             tmp_pred = all_pred[pid_test == i_pid]
-            tmp_gt = Y_test[pid_test == i_pid]
+            tmp_gt = Y_test_value[pid_test == i_pid]
             final_pred.append(Counter(tmp_pred).most_common(1)[0][0])
             final_gt.append(Counter(tmp_gt).most_common(1)[0][0])
         ## classification report
@@ -150,13 +165,14 @@ if __name__ == "__main__":
     is_debug = False
     if is_debug:
         # writer = SummaryWriter('/nethome/shong375/log/regnet/challenge2017/debug')
-        writer = SummaryWriter('/home/tarena/heartvoice_backup/debug')
+        writer = SummaryWriter('/home/tarena/heartvoice_cspc_incart_ptb/debug')
     else:
         # writer = SummaryWriter('/nethome/shong375/log/regnet/challenge2017/first')
-        writer = SummaryWriter('/home/tarena/heartvoice_backup/first')
+        writer = SummaryWriter('/home/tarena/heartvoice_cspc_incart_ptb/first')
 
     # make data, (sample, channel, length)
     X_train, X_val, X_test, Y_train, Y_val, Y_test, pid_val, pid_test = read_data_with_train_val_test()
+    print(pid_val.shape, pid_test.shape)
     print(X_train.shape, Y_train.shape)
 
     base_filters = 64

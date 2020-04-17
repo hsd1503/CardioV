@@ -58,7 +58,7 @@ class MyConv1dPadSame(nn.Module):
         self.conv = torch.nn.Conv1d(
             in_channels=self.in_channels, 
             out_channels=self.out_channels, 
-            kernel_size=self.kernel_size, 
+            kernel_size=self.kernel_size,
             stride=self.stride, 
             groups=self.groups)
 
@@ -109,21 +109,7 @@ class MyMaxPool1dPadSame(nn.Module):
     
 class Swish(nn.Module):
     def forward(self, x):
-        return x * F.sigmoid(x)
-
-# get each binary classifier's predict Probability
-# class GetProb(nn.Module):
-#     def __init__(self):
-#         super(GetProb, self).__init__()
-#         self.softmax = nn.Softmax(dim=2)
-#         # self.sigmoid = nn.Sigmoid()
-#
-#     def forward(self, x):
-#         net = x
-#         net = net.view(-1, 3, 2)
-#         net = self.softmax(net)
-#         net = net.view(-1, 6)
-#         return net
+        return x * torch.sigmoid(x)
 
 class BasicBlock(nn.Module):
     """
@@ -237,7 +223,7 @@ class BasicBlock(nn.Module):
         se = self.se_fc1(se)
         se = self.se_activation(se)
         se = self.se_fc2(se)
-        se = F.sigmoid(se) # (n_sample, n_channel)
+        se = torch.sigmoid(se) # (n_sample, n_channel)
         out = torch.einsum('abc,ab->abc', out, se)
         
         # if downsample, also downsample identity

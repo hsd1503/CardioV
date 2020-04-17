@@ -274,6 +274,7 @@ def slide_and_cut(X, Y, window_size, stride, output_pid=False):
             out_Y.append(tmp_Y)
             out_pid.append(i)
     if output_pid:
+        # print(np.array(out_X).shape, np.array(out_pid).shape)
         return np.array(out_X), np.array(out_Y), np.array(out_pid)
     else:
         return np.array(out_X), np.array(out_Y)
@@ -293,7 +294,7 @@ def read_data_with_train_val_test(window_size=5000, stride=500):
 
     X_train, X_test, Y_train, Y_test = train_test_split(all_data, all_label, test_size=0.2, random_state=0)
     # get a part
-    X_train, X_test, Y_train, Y_test = X_train[:80], X_test[:10], Y_train[:80], Y_test[:10]
+    X_train, X_test, Y_train, Y_test = X_train[:180], X_test[:180], Y_train[:180], Y_test[:180]
 
     X_val, X_test, Y_val, Y_test = train_test_split(X_test, Y_test, test_size=0.5, random_state=0)
 
