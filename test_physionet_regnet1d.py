@@ -13,6 +13,7 @@ from collections import Counter
 from tqdm import tqdm
 from matplotlib import pyplot as plt
 from sklearn.metrics import classification_report, confusion_matrix
+import random
 
 from util import read_data_with_train_val_test
 from net1d import Net1D, MyDataset
@@ -100,7 +101,7 @@ def run_exp(base_filters, filter_list, m_blocks_list):
                 # print(pred.shape)
                 all_pred_prob.append(pred)
         all_pred_prob = np.concatenate(all_pred_prob)
-        all_pred = np.sum(all_pred_prob, axis=1) - 1
+        all_pred = np.sum(all_pred_prob, axis=1) - 1 # need check after exp
         # print(all_pred.shape)
 
         # test
@@ -115,10 +116,13 @@ def run_exp(base_filters, filter_list, m_blocks_list):
                 pred = (pred > 0.5).astype(int)
                 all_pred_prob.append(pred)
         all_pred_prob = np.concatenate(all_pred_prob)
-        all_pred = np.sum(all_pred_prob, axis=1) - 1
+        all_pred = np.sum(all_pred_prob, axis=1) - 1 # need check after exp
 
 
 if __name__ == "__main__":
+
+    random.seed(0)
+    torch.manual_seed(0)
 
     batch_size = 32
 
