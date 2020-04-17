@@ -20,7 +20,8 @@ class MyDataset(Dataset):
         self.label = self.alter_label(label)
 
     def __getitem__(self, index):
-        return (torch.tensor(self.data[index], dtype=torch.float), torch.tensor(self.label[index], dtype=torch.long))
+        # label type --> float
+        return (torch.tensor(self.data[index], dtype=torch.float), torch.tensor(self.label[index], dtype=torch.float))
 
     def __len__(self):
         return len(self.data)
@@ -29,13 +30,13 @@ class MyDataset(Dataset):
         label_list = []
         for label in labels:
             if list(label)==[0, 0, 0, 1]:
-                label = [1, 0, 0, 0, 0, 0, 0, 0]
+                label = [1, 0, 0, 0]
             elif list(label)==[0, 0, 1, 0]:
-                label = [1, 0, 1, 0, 0, 0, 0, 0]
+                label = [1, 1, 0, 0]
             elif list(label)==[0, 1, 0, 0]:
-                label = [1, 0, 1, 0, 1, 0, 0, 0]
+                label = [1, 1, 1, 0]
             else:
-                label = [1, 0, 1, 0, 1, 0, 1, 0]
+                label = [1, 1, 1, 1]
             label_list.append(label)
         return np.array(label_list)
 
@@ -395,21 +396,15 @@ class Net1D(nn.Module):
             in_channels = out_channels
 
         # final prediction
-        self.dense = nn.Linear(in_channels, 2)
-        #
-        # self.get_prob = GetProb()
-        self.final_activation = nn.Softmax()
+        self.dense = nn.Linear(in_channels, n_classes)
 
     def forward(self, x):
-        
         out = x
-
-        # first conv
+        # first convmost_common
         out = self.first_conv(out)
         if self.use_bn:
             out = self.first_bn(out)
         out = self.first_activation(out)
-        
         # stages
         for i_stage in range(self.n_stages):
             net = self.stage_list[i_stage]
@@ -417,20 +412,6 @@ class Net1D(nn.Module):
 
         # final prediction
         out = out.mean(-1)
-        out_1 = self.dense(out)
-        # out = self.get_prob(out)
-        out_1 = self.final_activation(out_1)
-        #
-        out_2 = self.dense(out)
-        out_2 = self.final_activation(out_2)
-        #
-        out_3 = self.dense(out)
-        out_3 = self.final_activation(out_3)
-        #
-        out_4 = self.dense(out)
-        out_4 = self.final_activation(out_4)
-
-        #
-        out = torch.cat((out_1, out_2, out_3, out_4), 1)
-
+        out = self.dense(out)
+        out = torch.sigmoid(out)
         return out

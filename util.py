@@ -269,7 +269,8 @@ def slide_and_cut(X, Y, window_size, stride, output_pid=False):
         elif tmp_Y[3] == 1:
             i_stride = stride//5
         for j in range(0, len(tmp_ts)-window_size, i_stride):
-            out_X.append(tmp_ts[j:j+window_size])
+            # x-->x.T
+            out_X.append(tmp_ts[j:j+window_size].T)
             out_Y.append(tmp_Y)
             out_pid.append(i)
     if output_pid:
@@ -279,7 +280,7 @@ def slide_and_cut(X, Y, window_size, stride, output_pid=False):
 # stide: 500-->1000
 def read_data_with_train_val_test(window_size=5000, stride=500):
     # read pkl
-    with open('./ecg_data/incartdb/incartdb/incart_raw_2_1.pkl', 'rb') as fin:
+    with open('./ecg_data/CPSC/cpsc_raw_1_1.pkl', 'rb') as fin:
         res = pickle.load(fin)
     ## scale data
     all_data = res['data']
@@ -291,34 +292,38 @@ def read_data_with_train_val_test(window_size=5000, stride=500):
     all_label = res['label']
 
     X_train, X_test, Y_train, Y_test = train_test_split(all_data, all_label, test_size=0.2, random_state=0)
+    # get a part
+    X_train, X_test, Y_train, Y_test = X_train[:80], X_test[:10], Y_train[:80], Y_test[:10]
+
     X_val, X_test, Y_val, Y_test = train_test_split(X_test, Y_test, test_size=0.5, random_state=0)
 
     # slide and cut
     print('before: ')
     for i in range(4):
-        print(Counter(Y_train[:, i]), Counter(Y_val[:, i]), Counter(Y_test[:, i]))
-    print(Counter(Y_train), Counter(Y_val), Counter(Y_test))
+        print('Trian_{}:'.format(3-i), Counter(Y_train[:, i]),' Val_{}:'.format(3-i),Counter(Y_val[:, i]),' Test_{}:'.format(3-i), Counter(Y_test[:, i]))
+    # print(Counter(Y_train), Counter(Y_val), Counter(Y_test))
     X_train, Y_train = slide_and_cut(X_train, Y_train, window_size=window_size, stride=stride)
     X_val, Y_val, pid_val = slide_and_cut(X_val, Y_val, window_size=window_size, stride=stride, output_pid=True)
     X_test, Y_test, pid_test = slide_and_cut(X_test, Y_test, window_size=window_size, stride=stride, output_pid=True)
     print('after: ')
     for i in range(4):
-        print(Counter(Y_train[:, i]), Counter(Y_val[:, i]), Counter(Y_test[:, i]))
+        print('Trian_{}:'.format(3-i), Counter(Y_train[:, i]),' Val_{}:'.format(3-i),Counter(Y_val[:, i]),' Test_{}:'.format(3-i), Counter(Y_test[:, i]))
     # print(Counter(Y_train), Counter(Y_val), Counter(Y_test))
 
     # # shuffle train
-    # shuffle_pid = np.random.permutation(Y_train.shape[0])
-    # X_train = X_train[shuffle_pid]
-    # Y_train = Y_train[shuffle_pid]
-    #
+    shuffle_pid = np.random.permutation(Y_train.shape[0])
+    X_train = X_train[shuffle_pid]
+    Y_train = Y_train[shuffle_pid]
+
     # X_train = np.expand_dims(X_train, 1)
     # X_val = np.expand_dims(X_val, 1)
     # X_test = np.expand_dims(X_test, 1)
-    #
-    # return X_train, X_val, X_test, Y_train, Y_val, Y_test, pid_val, pid_test
+
+    return X_train, X_val, X_test, Y_train, Y_val, Y_test, pid_val, pid_test
 
 if __name__ == '__main__':
 
     # read_data_with_train_val_test()
-    merge_db()
+    #merge_db()
+    pass
 
