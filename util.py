@@ -6,6 +6,33 @@ from sklearn.model_selection import train_test_split
 from collections import Counter
 from tqdm import tqdm
 import wfdb
+from scipy.interpolate import interp1d
+
+
+def resample_unequal(ts, fs_in, fs_out):
+
+    fs_in, fs_out = int(fs_in), int(fs_out)
+    if fs_out == fs_in:
+        return ts
+    else:
+        x_old = np.linspace(0, 1, num=fs_in, endpoint=True)
+        x_new = np.linspace(0, 1, num=fs_out, endpoint=True)
+        y_old = ts
+        f = interp1d(x_old, y_old, kind='linear')
+        y_new = f(x_new)
+        return y_new
+
+def multi_leads_resample(arr2d, fs, fs_out):
+    lead_data_list = []
+    sample_len = arr2d.shape[0]
+    fs_in = (sample_len // fs) * fs
+    fs_out = (sample_len // fs) * fs_out
+    for lead_idx in range(arr2d.shape[1]):
+        lead_data = arr2d[:, lead_idx]
+        lead_data = resample_unequal(lead_data[:fs_in], fs_in, fs_out)
+        lead_data_list.append(lead_data)
+    tmp_data = np.array(lead_data_list).T
+    return tmp_data
 
 def cpsc_preprocess():
     # read label
@@ -36,17 +63,23 @@ def cpsc_preprocess():
 def ptb_preprocess():
     ptb_data = []
     comments = []
-
+    fs = 1000
+    fs_out = 500
     with open('./ecg_data/PTBDB/ptbdb_raw.pkl', 'rb') as fout:
         data = dill.load(fout)
-        print(data['data'].shape)
+        # print(data['data'].shape)
 
-    for i in range(len(data['data'])):
-    # for i in range(3):
-        ptb_data.append(data['data'][i][:, :12])
+    for i in tqdm(range(len(data['data']))):
+        tmp_data = data['data'][i][:, :12]
+        print(tmp_data.shape)
+        tmp_data = multi_leads_resample(tmp_data, fs, fs_out)
+        # print(tmp_data.shape)
+        ptb_data.append(tmp_data)
         # print(data[i].shape)
         comments.append(data['comments'][i])
     ptb_data = np.array(ptb_data)
+    print(ptb_data.shape)
+    print(ptb_data[0].shape)
     disease_list = [['Myocardial infarction'], ['Healthy control'], ['Heart failure', 'Cardiomyopathy'],
                     ['Bundle branch block'], ['Dysrhythmia'], ['Hypertrophy'], ['Valvular heart disease'],
                     ['Myocarditis']]
@@ -66,8 +99,8 @@ def ptb_preprocess():
         if flag == False:
             all_disease.append(tmp_label)
     all_disease = np.array(all_disease)
-    print(type(all_disease))
     print(all_disease.shape)
+    print('*'*20)
 
     ptb_res_1 = {'data': ptb_data[:270], 'label': all_disease[:270]}
     with open('./ecg_data/PTBDB/ptb_raw_1.pkl', 'wb') as fin:
@@ -75,21 +108,26 @@ def ptb_preprocess():
     ptb_res_2 = {'data': ptb_data[270:], 'label': all_disease[270:]}
     with open('./ecg_data/PTBDB/ptb_raw_2.pkl', 'wb') as fin:
         dill.dump(ptb_res_2, fin)
+    print('Already done..')
 
 def incart_preprocess():
     db_path = './ecg_data/incartdb/incartdb/'
     incart_data = []
     comments = []
+    fs = 257
+    fs_out = 500
     with open(db_path + 'RECORDS', 'r') as fin:
         all_record_name = fin.read().strip().split('\n')
     for record_name in all_record_name:
+
         tmp_data_res = wfdb.rdsamp(db_path + record_name)
-        incart_data.append(tmp_data_res[0])
+        tmp_data = tmp_data_res[0]
+        tmp_data = multi_leads_resample(tmp_data, fs, fs_out)
+        incart_data.append(tmp_data)
         comments.append(tmp_data_res[1]['comments'])
-        print(tmp_data_res[0])
-        print(tmp_data_res[0].shape)
+
     incart_data = np.array(incart_data)
-    print(incart_data.shape)
+    # print(incart_data.shape)
     disease_list = [['Acute MI'], ['Transient ischemic attack'], ['Earlier MI'],
                     ['Coronary artery disease'], ['Sinus node dysfunction'], ['Supraventricular ectopy'],
                     ['Atrial fibrillation or SVTA'], ['WPW'], ['AV block'], ['Bundle branch block']]
@@ -279,7 +317,7 @@ def slide_and_cut(X, Y, window_size, stride, output_pid=False):
     else:
         return np.array(out_X), np.array(out_Y)
 # stide: 500-->1000
-def read_data_with_train_val_test(window_size=5000, stride=500):
+def read_data_with_train_val_test(window_size=5000, stride=5000):
     # read pkl
     with open('./ecg_data/CPSC/cpsc_raw_1_1.pkl', 'rb') as fin:
         res = pickle.load(fin)
@@ -315,15 +353,15 @@ def read_data_with_train_val_test(window_size=5000, stride=500):
     shuffle_pid = np.random.permutation(Y_train.shape[0])
     X_train = X_train[shuffle_pid]
     Y_train = Y_train[shuffle_pid]
-
     # X_train = np.expand_dims(X_train, 1)
     # X_val = np.expand_dims(X_val, 1)
     # X_test = np.expand_dims(X_test, 1)
-
     return X_train, X_val, X_test, Y_train, Y_val, Y_test, pid_val, pid_test
 
 if __name__ == '__main__':
 
+
+    ptb_preprocess()
     # read_data_with_train_val_test()
     #merge_db()
     pass

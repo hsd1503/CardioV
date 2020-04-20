@@ -140,7 +140,7 @@ def run_exp(base_filters, filter_list, m_blocks_list):
 
         # save at each epoch
         res.append(tmp_res)
-        np.savetxt(os.path.join(save_path, 'res.csv'), np.array(res), fmt=':.4f', delimiter=',')
+        np.savetxt(os.path.join(save_path, 'res.csv'), np.array(res), fmt='%.4f', delimiter=',')
 
     return np.array(res)
 
