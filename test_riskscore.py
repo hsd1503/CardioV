@@ -41,7 +41,6 @@ def my_eval(gt, pred):
 def run_exp(base_filters, filter_list, m_blocks_list):
 
     writer = SummaryWriter(save_path)
-
     dataset = MyDataset(X_train, Y_train)
     dataset_val = MyDataset(X_val, Y_val)
     dataset_test = MyDataset(X_test, Y_test)
