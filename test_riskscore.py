@@ -38,6 +38,21 @@ def my_eval(gt, pred):
     res.append(r2_score(gt, pred))
     return np.array(res)
 
+def get_pred_from_prob(prob, mode='max_prob'):
+    """
+    prob: (n,4)
+    pred: (n,1)
+    """
+    if mode == 'sum_up': # simple sum up
+        pred = np.sum(prob, axis=1) - 1
+    elif mode == 'max_prob':
+        pred = np.argmax(prob, axis=1)
+    elif mode == 'all_0':
+        pred = np.zeros(prob.shape[0])
+
+    return pred
+
+
 def run_exp(base_filters, filter_list, m_blocks_list):
 
     writer = SummaryWriter(save_path)
@@ -115,7 +130,7 @@ def run_exp(base_filters, filter_list, m_blocks_list):
                 # print(pred.shape)
                 all_pred_prob.append(pred)
         all_pred_prob = np.concatenate(all_pred_prob)
-        all_pred = np.sum(all_pred_prob, axis=1) - 1 # need check after exp
+        all_pred = get_pred_from_prob(all_pred_prob, mode=mode)
         all_gt = np.sum(Y_val, axis=1) - 1
         # print(all_pred.shape)
         tmp_res.extend(my_eval(all_pred, all_gt))
@@ -132,7 +147,7 @@ def run_exp(base_filters, filter_list, m_blocks_list):
                 pred = (pred > 0.5).astype(int)
                 all_pred_prob.append(pred)
         all_pred_prob = np.concatenate(all_pred_prob)
-        all_pred = np.sum(all_pred_prob, axis=1) - 1 # need check after exp
+        all_pred = get_pred_from_prob(all_pred_prob, mode=mode)
         all_gt = np.sum(Y_test, axis=1) - 1
         # print(all_pred.shape)
         tmp_res.extend(my_eval(all_pred, all_gt))
@@ -150,6 +165,7 @@ if __name__ == "__main__":
     torch.manual_seed(0)
 
     batch_size = 32
+    mode = 'sum_up' # 'all_0', 'max_prob'
 
     is_debug = False
     if is_debug:
