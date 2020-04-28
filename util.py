@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import scipy.io
 import dill, pickle
+import h5py
 from sklearn.model_selection import train_test_split
 from collections import Counter
 from tqdm import tqdm
@@ -10,26 +11,25 @@ from scipy.interpolate import interp1d
 
 
 def resample_unequal(ts, fs_in, fs_out):
-
+    t = len(ts) / fs_in
+    # print(t)
+    # print(t*fs_out)
     fs_in, fs_out = int(fs_in), int(fs_out)
     if fs_out == fs_in:
         return ts
     else:
-        x_old = np.linspace(0, 1, num=fs_in, endpoint=True)
-        x_new = np.linspace(0, 1, num=fs_out, endpoint=True)
+        x_old = np.linspace(0, 1, num=len(ts), endpoint=True)
+        x_new = np.linspace(0, 1, num=t*fs_out, endpoint=True)
         y_old = ts
         f = interp1d(x_old, y_old, kind='linear')
         y_new = f(x_new)
         return y_new
 
-def multi_leads_resample(arr2d, fs, fs_out):
+def multi_leads_resample(arr2d, fs_in, fs_out):
     lead_data_list = []
-    sample_len = arr2d.shape[0]
-    fs_in = (sample_len // fs) * fs
-    fs_out = (sample_len // fs) * fs_out
     for lead_idx in range(arr2d.shape[1]):
         lead_data = arr2d[:, lead_idx]
-        lead_data = resample_unequal(lead_data[:fs_in], fs_in, fs_out)
+        lead_data = resample_unequal(lead_data, fs_in, fs_out)
         lead_data_list.append(lead_data)
     tmp_data = np.array(lead_data_list).T
     return tmp_data
@@ -63,18 +63,19 @@ def cpsc_preprocess():
 def ptb_preprocess():
     ptb_data = []
     comments = []
-    fs = 1000
+    fs_in = 1000
     fs_out = 500
     with open('./ecg_data/PTBDB/ptbdb_raw.pkl', 'rb') as fout:
         data = dill.load(fout)
-        # print(data['data'].shape)
 
     for i in tqdm(range(len(data['data']))):
         tmp_data = data['data'][i][:, :12]
+        print('*-'*5)
         print(tmp_data.shape)
-        tmp_data = multi_leads_resample(tmp_data, fs, fs_out)
-        # print(tmp_data.shape)
+        tmp_data = multi_leads_resample(tmp_data, fs_in, fs_out)
+        print(tmp_data.shape)
         ptb_data.append(tmp_data)
+        print('*-'*5)
         # print(data[i].shape)
         comments.append(data['comments'][i])
     ptb_data = np.array(ptb_data)
@@ -114,15 +115,14 @@ def incart_preprocess():
     db_path = './ecg_data/incartdb/incartdb/'
     incart_data = []
     comments = []
-    fs = 257
+    fs_in = 257
     fs_out = 500
     with open(db_path + 'RECORDS', 'r') as fin:
         all_record_name = fin.read().strip().split('\n')
     for record_name in all_record_name:
-
         tmp_data_res = wfdb.rdsamp(db_path + record_name)
         tmp_data = tmp_data_res[0]
-        tmp_data = multi_leads_resample(tmp_data, fs, fs_out)
+        tmp_data = multi_leads_resample(tmp_data, fs_in, fs_out)
         incart_data.append(tmp_data)
         comments.append(tmp_data_res[1]['comments'])
 
@@ -157,6 +157,51 @@ def incart_preprocess():
     incart_res_2 = {'data': incart_data[32:], 'label': all_disease[32:]}
     with open('./ecg_data/incartdb/incartdb/incart_raw_2.pkl', 'wb') as fin:
         pickle.dump(incart_res_2, fin)
+
+def natcomm_preprocess():
+    natcomm_data = []
+    fs_in = 400
+    fs_out = 500
+    # read data
+    with h5py.File('./data/data/ecg_tracings.hdf5', 'r') as f:
+        data = np.array(f['tracings'])
+    for i in tqdm(range(len(data))):
+        tmp_data = data[i]
+        tmp_data = multi_leads_resample(tmp_data, fs_in, fs_out)
+        natcomm_data.append(tmp_data)
+    natcomm_data = np.array(natcomm_data)
+    # read label
+    label_df = pd.read_csv('./data/data/annotations/gold_standard.csv', header=0)
+    label = label_df.iloc[:, :].values
+
+    res = {'data': natcomm_data, 'label': label}
+    with open('./data/data/natcomm.pkl', 'wb') as fin:
+        dill.dump(res, fin)
+
+def natcomm_alter_label():
+    with open('./data/data/natcomm.pkl', 'rb') as fout:
+        res = dill.load(fout)
+    labels = res['label']
+    data = res['data']
+    print(labels.shape, data.shape)
+    riskscore_label = []
+    riskscore_data = []
+    for i, label in enumerate(labels):
+        if sum(label) == 0:
+            riskscore_data.append(data[i])
+            riskscore_label.append([0, 0, 0, 1])
+        elif label[4] == 1:
+            riskscore_data.append(data[i])
+            riskscore_label.append([0, 1, 0, 0])
+        else:
+            riskscore_data.append(data[i])
+            riskscore_label.append([0, 0, 1, 0])
+    riskscore_data = np.array(riskscore_data)
+    riskscore_label = np.array(riskscore_label)
+    new_res = {'data':riskscore_data, 'label':riskscore_label}
+    with open('./data/data/natcomm_1.pkl', 'wb') as fin:
+        dill.dump(new_res, fin)
+
 
 # Add critical value label
 def cpsc_alter_label():
@@ -270,20 +315,15 @@ def merge_db():
     all_data = np.concatenate((cpsc_data_1, cpsc_data_2, cpsc_data_3, ptb_data_1, ptb_data_2))
     data_list = list(all_data)
 
-    with open('./ecg_data/incartdb/incartdb/incart_raw_1_1.pkl', 'rb') as fout_6:
-        incart_res_1 = dill.load(fout_6)
-    incart_data_1 = incart_res_1['data']
-    incart_label_1 = incart_res_1['label']
-    with open('./ecg_data/incartdb/incartdb/incart_raw_2_1.pkl', 'rb') as fout_7:
-        incart_res_2 = dill.load(fout_7)
-    incart_data_2 = incart_res_2['data']
-    incart_label_2 = incart_res_2['label']
+    with open('./data/data/natcomm_1.pkl', 'rb') as fout_6:
+        natcomm_res = dill.load(fout_6)
+    natcomm_data = natcomm_res['data']
+    natcomm_label = natcomm_res['label']
+
     # all_label
-    all_label = np.concatenate((cpsc_label_1, cpsc_label_2, cpsc_label_3, ptb_label_1, ptb_label_2, incart_label_1, incart_label_2))
-    for i in range(incart_data_1.shape[0]):
-        data_list.append(incart_data_1[i])
-    for j in range(incart_data_2.shape[0]):
-        data_list.append(incart_data_2[j])
+    all_label = np.concatenate((cpsc_label_1, cpsc_label_2, cpsc_label_3, ptb_label_1, ptb_label_2, natcomm_label))
+    for i in range(natcomm_data.shape[0]):
+        data_list.append(natcomm_data[i])
     all_data = np.array(data_list)
 
     all_res = {'data': all_data, 'label': all_label}
@@ -339,30 +379,37 @@ def read_data_with_train_val_test(window_size=5000, stride=5000):
     # slide and cut
     print('before: ')
     for i in range(4):
-        print('Trian_{}:'.format(3-i), Counter(Y_train[:, i]),' Val_{}:'.format(3-i),Counter(Y_val[:, i]),' Test_{}:'.format(3-i), Counter(Y_test[:, i]))
-    # print(Counter(Y_train), Counter(Y_val), Counter(Y_test))
+        if i < 3:
+            print('Train:', Counter(Y_train[: ,i])[1] - Counter(Y_train[:, i+1])[1],
+                  'Val:', Counter(Y_val[: ,i])[1] - Counter(Y_val[:, i+1])[1],
+                  'Test:', Counter(Y_test[: ,i])[1] - Counter(Y_test[:, i+1])[1])
+        else:
+            print('Train:', Counter(Y_train[:, i])[1],'Val:', Counter(Y_val[:, i])[1],'Test:', Counter(Y_test[:, i])[1])
     X_train, Y_train = slide_and_cut(X_train, Y_train, window_size=window_size, stride=stride)
     X_val, Y_val, pid_val = slide_and_cut(X_val, Y_val, window_size=window_size, stride=stride, output_pid=True)
     X_test, Y_test, pid_test = slide_and_cut(X_test, Y_test, window_size=window_size, stride=stride, output_pid=True)
     print('after: ')
     for i in range(4):
-        print('Trian_{}:'.format(3-i), Counter(Y_train[:, i]),' Val_{}:'.format(3-i),Counter(Y_val[:, i]),' Test_{}:'.format(3-i), Counter(Y_test[:, i]))
-    # print(Counter(Y_train), Counter(Y_val), Counter(Y_test))
+        if i < 3:
+            print('Train:', Counter(Y_train[: ,i])[1] - Counter(Y_train[:, i+1])[1],
+                  'Val:', Counter(Y_val[: ,i])[1] - Counter(Y_val[:, i+1])[1],
+                  'Test:', Counter(Y_test[: ,i])[1] - Counter(Y_test[:, i+1])[1])
+        else:
+            print('Train:', Counter(Y_train[:, i])[1],'Val:', Counter(Y_val[:, i])[1],'Test:', Counter(Y_test[:, i])[1])
 
     # # shuffle train
     shuffle_pid = np.random.permutation(Y_train.shape[0])
     X_train = X_train[shuffle_pid]
     Y_train = Y_train[shuffle_pid]
-    # X_train = np.expand_dims(X_train, 1)
-    # X_val = np.expand_dims(X_val, 1)
-    # X_test = np.expand_dims(X_test, 1)
     return X_train, X_val, X_test, Y_train, Y_val, Y_test, pid_val, pid_test
 
 if __name__ == '__main__':
 
-
-    ptb_preprocess()
+    # incart_preprocess()
+    # ptb_preprocess()
     # read_data_with_train_val_test()
     #merge_db()
+    # natcomm_preprocess()
+    # natcomm_alter_label()
     pass
 

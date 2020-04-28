@@ -15,6 +15,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, mean_absolute_error, r2_score
 import random
 import os
+import pickle
 
 from util import read_data_with_train_val_test
 from net1d import Net1D, MyDataset
@@ -37,6 +38,22 @@ def my_eval(gt, pred):
     res.append(mean_absolute_error(gt, pred))
     res.append(r2_score(gt, pred))
     return np.array(res)
+
+def get_pred_from_prob(prob, mode='max_prob'):
+    """
+    prob: (n,4)
+    pred: (n,1)
+    """
+    pred = 0
+    if mode == 'sum_up': # simple sum up
+        pred = np.sum(prob, axis=1)
+    elif mode == 'max_prob':
+        pred = np.argmax(prob, axis=1)
+    elif mode == 'all_0':
+        pred = np.zeros(prob.shape[0])
+    # print(pred)
+
+    return pred
 
 def run_exp(base_filters, filter_list, m_blocks_list):
 
@@ -73,7 +90,7 @@ def run_exp(base_filters, filter_list, m_blocks_list):
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10)
     # loss_func = torch.nn.CrossEntropyLoss()
     loss_func = nn.BCELoss()
-
+    # loss_func = nn.BCEWithLogitsLoss()
     res = []
     n_epoch = 50
     step = 0
@@ -82,12 +99,19 @@ def run_exp(base_filters, filter_list, m_blocks_list):
         # train
         model.train()
         prog_iter = tqdm(dataloader, desc="Training", leave=False)
+        train_pred_prob = []
+        tmp_res = []
+        train_labels = []
         for batch_idx, batch in enumerate(prog_iter):
-
             input_x, input_y = tuple(t.to(device) for t in batch)
-            # print(input_x.data.numpy().shape)
             pred = model(input_x)
             loss = loss_func(pred, input_y)
+            #
+            pred = pred.cpu().data.numpy()
+            pred = (pred > 0.5).astype(int)
+            train_pred_prob.append(pred)
+            train_labels.append(input_y.cpu().data.numpy())
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -95,47 +119,63 @@ def run_exp(base_filters, filter_list, m_blocks_list):
             writer.add_scalar('Loss/train', loss.item(), step)
             if is_debug:
                 break
-
         scheduler.step(_)
+        #
+        train_labels = np.concatenate(train_labels)
+        train_pred_prob = np.concatenate(train_pred_prob)
+        all_pred = get_pred_from_prob(train_pred_prob, mode=mode)
+        all_gt = np.sum(train_labels, axis=1)
+        tmp_res.extend(my_eval(all_gt, all_pred))
 
-        tmp_res = []
+        # save model
+        model_save_path = './model/epoch_{}_params_file.pkl'.format(_)
+        torch.save(model.state_dict(), model_save_path)
+
         # val
         model.eval()
         prog_iter_val = tqdm(dataloader_val, desc="Validation", leave=False)
-        all_pred_prob = []
+        val_pred_prob = []
+        val_labels = []
         with torch.no_grad():
             for batch_idx, batch in enumerate(prog_iter_val):
                 input_x, input_y = tuple(t.to(device) for t in batch)
-                # print(input_x.data.numpy().shape)
                 pred = model(input_x)
                 pred = pred.cpu().data.numpy()
-                # print(pred.shape)
+                # pred = np.round(pred).astype(int)
                 pred = (pred > 0.5).astype(int)
-                # pred = np.sum(pred, axis=1)
-                # print(pred.shape)
-                all_pred_prob.append(pred)
-        all_pred_prob = np.concatenate(all_pred_prob)
-        all_pred = np.sum(all_pred_prob, axis=1) - 1 # need check after exp
-        all_gt = np.sum(Y_val, axis=1) - 1
-        # print(all_pred.shape)
-        tmp_res.extend(my_eval(all_pred, all_gt))
+                val_pred_prob.append(pred)
+                val_labels.append(input_y.cpu().data.numpy())
+        val_pred_prob = np.concatenate(val_pred_prob)
+        all_pred = get_pred_from_prob(val_pred_prob, mode=mode)
+        all_gt = np.sum(val_labels, axis=1)
+        tmp_res.extend(my_eval(all_gt, all_pred))
 
         # test
         model.eval()
         prog_iter_test = tqdm(dataloader_test, desc="Testing", leave=False)
-        all_pred_prob = []
+        test_pred_prob = []
+        test_pred_value = []
+        test_labels = []
         with torch.no_grad():
             for batch_idx, batch in enumerate(prog_iter_test):
                 input_x, input_y = tuple(t.to(device) for t in batch)
                 pred = model(input_x)
-                pred = pred.cpu().data.numpy()
-                pred = (pred > 0.5).astype(int)
-                all_pred_prob.append(pred)
-        all_pred_prob = np.concatenate(all_pred_prob)
-        all_pred = np.sum(all_pred_prob, axis=1) - 1 # need check after exp
-        all_gt = np.sum(Y_test, axis=1) - 1
-        # print(all_pred.shape)
-        tmp_res.extend(my_eval(all_pred, all_gt))
+                pred_prob = pred.cpu().data.numpy()
+                pred_value = (pred_prob > 0.5).astype(int)
+                test_pred_value.append(pred_value)
+                test_pred_prob.append(pred_prob)
+                test_labels.append(input_y.cpu().data.numpy())
+        test_pred_prob = np.concatenate(test_pred_prob)
+        test_labels = np.concatenate(test_labels)
+        # save test prob
+        prob_res = {'prob':test_pred_prob}
+        with open('./prob/epoch_{}_prob.pkl'.format(_), 'wb') as f:
+            pickle.dump(prob_res, f)
+
+        test_pred_value = np.concatenate(test_pred_value)
+        all_pred = get_pred_from_prob(test_pred_value, mode=mode)
+        all_gt = np.sum(test_labels, axis=1)
+        tmp_res.extend(my_eval(all_gt, all_pred))
 
         # save at each epoch
         res.append(tmp_res)
@@ -148,10 +188,12 @@ if __name__ == "__main__":
 
     random.seed(0)
     torch.manual_seed(0)
+    np.random.seed(0)
 
-    batch_size = 32
+    mode = 'sum_up'# 'all_0', 'max_prob'
+    batch_size = 128
 
-    is_debug = False
+    is_debug = True
     if is_debug:
         save_path = '/home/tarena/heartvoice_cspc_incart_ptb/debug'
     else:

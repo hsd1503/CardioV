@@ -27,26 +27,22 @@ class MyDataset(Dataset):
         return len(self.data)
 
     def alter_label(self, labels):
-        label_list = []
-        for label in labels:
+        out_labels = np.zeros_like(labels)
+        out_labels = out_labels[:, :3]
+        for i in range(labels.shape[0]):
             ### 正常
-            if list(label)==[0, 0, 0, 1]:
-                label = [1, 0, 0, 0]
+            if list(labels[i])==[0, 0, 0, 1]:
+                out_labels[i] = np.array([0,0,0])
             ### 轻度
-            elif list(label)==[0, 0, 1, 0]:
-                label = [1, 1, 0, 0]
+            elif list(labels[i])==[0, 0, 1, 0]:
+                out_labels[i] = np.array([1, 0, 0])
             ### 中度
-            elif list(label)==[0, 1, 0, 0]:
-                label = [1, 1, 1, 0]
+            elif list(labels[i])==[0, 1, 0, 0]:
+                out_labels = np.array([1, 1, 0])
             ### 危急
-            elif list(label)==[1, 0, 0, 0]:
-                label = [1, 1, 1, 1]
-            ### 
-            else:
-                label = [0, 0, 0, 0]
-            label_list.append(label)
-        return np.array(label_list)
-
+            elif list(labels[i])==[1, 0, 0, 0]:
+                out_labels = np.array([1, 1, 1])
+        return out_labels
 
 class MyConv1dPadSame(nn.Module):
     """
@@ -88,7 +84,6 @@ class MyConv1dPadSame(nn.Module):
 class MyMaxPool1dPadSame(nn.Module):
     """
     extend nn.MaxPool1d to support SAME padding
-
     params:
         kernel_size: kernel size
         stride: the stride of the window. Default value is kernel_size
