@@ -372,7 +372,7 @@ def read_data_with_train_val_test(window_size=5000, stride=5000):
 
     X_train, X_test, Y_train, Y_test = train_test_split(all_data, all_label, test_size=0.2, random_state=0)
     # get a part
-    X_train, X_test, Y_train, Y_test = X_train[:180], X_test[:180], Y_train[:180], Y_test[:180]
+    X_train, X_test, Y_train, Y_test = X_train, X_test, Y_train, Y_test
 
     X_val, X_test, Y_val, Y_test = train_test_split(X_test, Y_test, test_size=0.5, random_state=0)
 
