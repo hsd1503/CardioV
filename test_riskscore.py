@@ -95,7 +95,6 @@ def run_exp(base_filters, filter_list, m_blocks_list):
     n_epoch = 50
     step = 0
     for _ in tqdm(range(n_epoch), desc="epoch", leave=False):
-
         # train
         model.train()
         prog_iter = tqdm(dataloader, desc="Training", leave=False)
@@ -106,7 +105,6 @@ def run_exp(base_filters, filter_list, m_blocks_list):
             input_x, input_y = tuple(t.to(device) for t in batch)
             pred = model(input_x)
             loss = loss_func(pred, input_y)
-            #
             pred = pred.cpu().data.numpy()
             pred = (pred > 0.5).astype(int)
             train_pred_prob.append(pred)
@@ -165,13 +163,12 @@ def run_exp(base_filters, filter_list, m_blocks_list):
                 test_pred_value.append(pred_value)
                 test_pred_prob.append(pred_prob)
                 test_labels.append(input_y.cpu().data.numpy())
-        test_pred_prob = np.concatenate(test_pred_prob)
+        #test_pred_prob = np.concatenate(test_pred_prob)
+        #save test prob
+        # prob_res = {'prob':test_pred_prob}
+        # with open('./prob/epoch_{}_prob.pkl'.format(_), 'wb') as f:
+        #     pickle.dump(prob_res, f)
         test_labels = np.concatenate(test_labels)
-        # save test prob
-        prob_res = {'prob':test_pred_prob}
-        with open('./prob/epoch_{}_prob.pkl'.format(_), 'wb') as f:
-            pickle.dump(prob_res, f)
-
         test_pred_value = np.concatenate(test_pred_value)
         all_pred = get_pred_from_prob(test_pred_value, mode=mode)
         all_gt = np.sum(test_labels, axis=1)
