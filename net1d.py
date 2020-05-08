@@ -384,7 +384,7 @@ class Net1D(nn.Module):
             in_channels = out_channels
 
         # final prediction
-        self.dense = nn.Linear(in_channels, n_classes)
+        self.dense = nn.Linear(in_channels, n_classes-1)
 
     def forward(self, x):
         out = x
