@@ -26,7 +26,11 @@ model = Net1D(
         n_classes=4)
 
 # get input data
-_,_,X_test,_,_,Y_test,_,_ = read_data_with_train_val_test()
+with open('./test_data/test.pkl','wb') as fin:
+    res = pickle.load(fin)
+X_test = res['test_data']
+Y_test = res['test_label']
+
 dataset_test = MyDataset(X_test, Y_test)
 dataloader_test = DataLoader(dataset_test, batch_size=batch_size, drop_last=False)
 
