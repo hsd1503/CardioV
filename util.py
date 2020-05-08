@@ -111,53 +111,6 @@ def ptb_preprocess():
         dill.dump(ptb_res_2, fin)
     print('Already done..')
 
-def incart_preprocess():
-    db_path = './ecg_data/incartdb/incartdb/'
-    incart_data = []
-    comments = []
-    fs_in = 257
-    fs_out = 500
-    with open(db_path + 'RECORDS', 'r') as fin:
-        all_record_name = fin.read().strip().split('\n')
-    for record_name in all_record_name:
-        tmp_data_res = wfdb.rdsamp(db_path + record_name)
-        tmp_data = tmp_data_res[0]
-        tmp_data = multi_leads_resample(tmp_data, fs_in, fs_out)
-        incart_data.append(tmp_data)
-        comments.append(tmp_data_res[1]['comments'])
-
-    incart_data = np.array(incart_data)
-    # print(incart_data.shape)
-    disease_list = [['Acute MI'], ['Transient ischemic attack'], ['Earlier MI'],
-                    ['Coronary artery disease'], ['Sinus node dysfunction'], ['Supraventricular ectopy'],
-                    ['Atrial fibrillation or SVTA'], ['WPW'], ['AV block'], ['Bundle branch block']]
-    all_disease = []
-    for c in comments:
-        flag = False
-        txt_disease = c[0]
-        tmp_label = [0 for _ in range(len(disease_list))]
-        for i in range(len(disease_list)):
-            disease = disease_list[i]
-            for d in disease:
-                if d in txt_disease:
-                    tmp_label[i] = 1
-                    # print(tmp_label)
-                    all_disease.append(tmp_label)
-                    flag = True
-                    break
-        if flag == False:
-            all_disease.append(tmp_label)
-    all_disease = np.array(all_disease)
-    print(type(all_disease))
-    print(all_disease.shape)
-
-    incart_res_1 = {'data': incart_data[:32], 'label': all_disease[:32]}
-    with open('./ecg_data/incartdb/incartdb/incart_raw_1.pkl', 'wb') as fin:
-        pickle.dump(incart_res_1, fin)
-    incart_res_2 = {'data': incart_data[32:], 'label': all_disease[32:]}
-    with open('./ecg_data/incartdb/incartdb/incart_raw_2.pkl', 'wb') as fin:
-        pickle.dump(incart_res_2, fin)
-
 def natcomm_preprocess():
     natcomm_data = []
     fs_in = 400
@@ -177,31 +130,6 @@ def natcomm_preprocess():
     res = {'data': natcomm_data, 'label': label}
     with open('./data/data/natcomm.pkl', 'wb') as fin:
         dill.dump(res, fin)
-
-def natcomm_alter_label():
-    with open('./data/data/natcomm.pkl', 'rb') as fout:
-        res = dill.load(fout)
-    labels = res['label']
-    data = res['data']
-    print(labels.shape, data.shape)
-    riskscore_label = []
-    riskscore_data = []
-    for i, label in enumerate(labels):
-        if sum(label) == 0:
-            riskscore_data.append(data[i])
-            riskscore_label.append([0, 0, 0, 1])
-        elif label[4] == 1:
-            riskscore_data.append(data[i])
-            riskscore_label.append([0, 1, 0, 0])
-        else:
-            riskscore_data.append(data[i])
-            riskscore_label.append([0, 0, 1, 0])
-    riskscore_data = np.array(riskscore_data)
-    riskscore_label = np.array(riskscore_label)
-    new_res = {'data':riskscore_data, 'label':riskscore_label}
-    with open('./data/data/natcomm_1.pkl', 'wb') as fin:
-        dill.dump(new_res, fin)
-
 
 # Add critical value label
 def cpsc_alter_label():
@@ -261,32 +189,28 @@ def ptb_alter_label():
     with open('./ecg_data/PTBDB/ptb_raw_2_1.pkl', 'wb') as fin:
         dill.dump(new_res, fin)
 
-def incart_alter_label():
-    with open('./ecg_data/incartdb/incartdb/incart_raw_2.pkl', 'rb') as fout:
+def natcomm_alter_label():
+    with open('./data/data/natcomm.pkl', 'rb') as fout:
         res = dill.load(fout)
     labels = res['label']
-    # print(labels[:20])
     data = res['data']
-
-    critical_value_label = []
-    critical_value_data = []
+    print(labels.shape, data.shape)
+    riskscore_label = []
+    riskscore_data = []
     for i, label in enumerate(labels):
-        if label[0]==1:# Acute MI
-            critical_value_data.append(data[i])
-            critical_value_label.append([1, 0, 0, 0])
-        elif label[3]==1 or label[5]==1 or label[7]==1 or label[9]==1:
-            critical_value_data.append(data[i])
-            critical_value_label.append([0, 0, 1, 0])
-        elif label[1]==1 or label[2]==1 or label[4]==1 or label[6]==1 or label[8]==1:
-            critical_value_data.append(data[i])
-            critical_value_label.append([0, 1, 0, 0])
+        if sum(label) == 0:
+            riskscore_data.append(data[i])
+            riskscore_label.append([0, 0, 0, 1])
+        elif label[4] == 1:
+            riskscore_data.append(data[i])
+            riskscore_label.append([0, 1, 0, 0])
         else:
-            critical_value_data.append(data[i])
-            critical_value_label.append([0, 0, 0, 1])
-    critical_value_data = np.array(critical_value_data)
-    critical_value_label = np.array(critical_value_label)
-    new_res = {'data':critical_value_data, 'label':critical_value_label}
-    with open('./ecg_data/incartdb/incartdb/incart_raw_2_1.pkl', 'wb') as fin:
+            riskscore_data.append(data[i])
+            riskscore_label.append([0, 0, 1, 0])
+    riskscore_data = np.array(riskscore_data)
+    riskscore_label = np.array(riskscore_label)
+    new_res = {'data':riskscore_data, 'label':riskscore_label}
+    with open('./data/data/natcomm_1.pkl', 'wb') as fin:
         dill.dump(new_res, fin)
 
 def merge_db():
@@ -308,7 +232,7 @@ def merge_db():
         ptb_res_1 = dill.load(fout_4)
     ptb_data_1 = ptb_res_1['data']
     ptb_label_1 = ptb_res_1['label']
-    with open('./ecg_data/CPSC/cpsc_raw_3_1.pkl', 'rb') as fout_5:
+    with open('./ecg_data/PTBDB/ptb_raw_2_1.pkl', 'rb') as fout_5:
         ptb_res_2 = dill.load(fout_5)
     ptb_data_2 = ptb_res_2['data']
     ptb_label_2 = ptb_res_2['label']
@@ -338,29 +262,29 @@ def slide_and_cut(X, Y, window_size, stride, output_pid=False):
     for i in range(n_sample):
         tmp_ts = X[i]
         tmp_Y = Y[i]
-        if tmp_Y[0] == 1:
+        if tmp_Y.sum() == 1:
+            i_stride = stride//2
+        elif tmp_Y.sum() == 2:
+            i_stride = stride
+        elif tmp_Y.sum() == 3:
+            i_stride = stride*2
+        elif tmp_Y.sum() == 4:
             i_stride = stride//16
-        elif tmp_Y[1] == 1:
-            i_stride = stride
-        elif tmp_Y[2] == 1:
-            i_stride = stride
-        elif tmp_Y[3] == 1:
-            i_stride = stride//5
         for j in range(0, len(tmp_ts)-window_size, i_stride):
             # x-->x.T
             out_X.append(tmp_ts[j:j+window_size].T)
             out_Y.append(tmp_Y)
             out_pid.append(i)
     if output_pid:
-        # print(np.array(out_X).shape, np.array(out_pid).shape)
         return np.array(out_X), np.array(out_Y), np.array(out_pid)
     else:
         return np.array(out_X), np.array(out_Y)
-# stide: 500-->1000
-def read_data_with_train_val_test(window_size=5000, stride=5000):
+
+def read_data_with_train_val_test(window_size=5000, stride=500):
     # read pkl
-    with open('./ecg_data/CPSC/cpsc_raw_1_1.pkl', 'rb') as fin:
+    with open('./data.pkl', 'rb') as fin:
         res = pickle.load(fin)
+
     ## scale data
     all_data = res['data']
     for i in range(len(all_data)):
@@ -373,7 +297,6 @@ def read_data_with_train_val_test(window_size=5000, stride=5000):
     X_train, X_test, Y_train, Y_test = train_test_split(all_data, all_label, test_size=0.2, random_state=0)
     # get a part
     X_train, X_test, Y_train, Y_test = X_train, X_test, Y_train, Y_test
-
     X_val, X_test, Y_val, Y_test = train_test_split(X_test, Y_test, test_size=0.5, random_state=0)
 
     # slide and cut
@@ -401,13 +324,14 @@ def read_data_with_train_val_test(window_size=5000, stride=5000):
     shuffle_pid = np.random.permutation(Y_train.shape[0])
     X_train = X_train[shuffle_pid]
     Y_train = Y_train[shuffle_pid]
+    # print(X_test[0])
     return X_train, X_val, X_test, Y_train, Y_val, Y_test, pid_val, pid_test
 
 if __name__ == '__main__':
 
     # incart_preprocess()
     # ptb_preprocess()
-    # read_data_with_train_val_test()
+    read_data_with_train_val_test()
     #merge_db()
     # natcomm_preprocess()
     # natcomm_alter_label()
