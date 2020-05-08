@@ -38,7 +38,8 @@ def read_ecg():
     path = '/home/weiguodong/test/val_test_data'
     with open(os.path.join(path, 'test_data.pkl'), 'rb') as fin:
         res = pickle.load(fin)
-    return res['test_data']
+    print(res.keys())
+    return res['test_pid'], res['test_data']
     
 def plot_ecg(data, fs=500):
     """
@@ -78,37 +79,37 @@ def plot_ecg(data, fs=500):
 if __name__ == '__main__':
     
     gt, pred = read_gt_pred()
-    ecg_data = read_ecg()
+    pid, ecg_data = read_ecg()
     print(my_eval(gt, pred))
     print(gt.shape, pred.shape, ecg_data.shape)
     n_samples = ecg_data.shape[0]
 
-    yes_samples = set([])
+    yes_pid = set([])
     for i in tqdm(range(n_samples)):
         
         if np.abs(gt[i] - pred[i]) == 3:
-            yes_samples.add(i)
-            if (i-1) not in yes_samples:
+            if pid[i] not in yes_pid:
                 tmp_data = ecg_data[i]
                 fig = plot_ecg(tmp_data)
                 plt.title('Groundtruth: {}, Prediction: {}'.format(gt[i], pred[i]))
-                plt.savefig('img/3_{}_{}_{}.png'.format(i, gt[i], pred[i]))
+                plt.savefig('img/3_{}_{}_{}_{}.png'.format(i, pid[i], gt[i], pred[i]))
+                yes_pid.add(pid[i])
         
         if np.abs(gt[i] - pred[i]) == 2:
-            yes_samples.add(i)
-            if (i-1) not in yes_samples:
+            if pid[i] not in yes_pid:
                 tmp_data = ecg_data[i]
                 fig = plot_ecg(tmp_data)
                 plt.title('Groundtruth: {}, Prediction: {}'.format(gt[i], pred[i]))
-                plt.savefig('img/2_{}_{}_{}.png'.format(i, gt[i], pred[i]))
+                plt.savefig('img/2_{}_{}_{}_{}.png'.format(i, pid[i], gt[i], pred[i]))
+                yes_pid.add(pid[i])
         
         if np.abs(gt[i] - pred[i]) == 1:
-            yes_samples.add(i)
-            if (i-1) not in yes_samples:
+            if pid[i] not in yes_pid:
                 tmp_data = ecg_data[i]
                 fig = plot_ecg(tmp_data)
                 plt.title('Groundtruth: {}, Prediction: {}'.format(gt[i], pred[i]))
-                plt.savefig('img/1_{}_{}_{}.png'.format(i, gt[i], pred[i]))
+                plt.savefig('img/1_{}_{}_{}_{}.png'.format(i, pid[i], gt[i], pred[i]))
+                yes_pid.add(pid[i])
 
         
         
