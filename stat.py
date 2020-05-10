@@ -22,7 +22,7 @@ def my_eval(gt, pred):
     F1_3 = 2*cm[3,3] / (np.sum(cm[3,:])+np.sum(cm[:,3]))
     F1 = np.mean([F1_0, F1_1, F1_2, F1_3])
     res.extend([F1_0, F1_1, F1_2, F1_3, F1])
-    print(cm)
+    print(res, cm)
     return np.array(res), cm
 
 def read_gt_pred():
@@ -41,11 +41,11 @@ def read_gt_pred():
     return cum_truth, cum_pred
 
 def read_ecg():
-    path = '/home/weiguodong/test/val_test_data'
+    path = '/home/weiguodong/test/val_test_data_with_age_gender'
     with open(os.path.join(path, 'test_data.pkl'), 'rb') as fin:
         res = pickle.load(fin)
     print(res.keys())
-    return res['test_pid'], res['test_data']
+    return res['test_pid'], res['test_data'], res['test_age'], res['test_gender']
     
 def plot_ecg(data, fs=500):
     """
@@ -108,16 +108,35 @@ def get_confusion_matrix_image(cm, mode='recall', normalized=True, title='Normal
 if __name__ == '__main__':
     
     ### confusion matrix
+#     gt, pred = read_gt_pred()
+#     res, cm = my_eval(gt, pred)
+#     print(res)
+#     get_confusion_matrix_image(cm, mode='precision')
+#     plt.savefig('res/cm_precision.pdf')
+#     get_confusion_matrix_image(cm, mode='recall')
+#     plt.savefig('res/cm_recall.pdf')
+    
+    ### confusion matrix by age, gender
     gt, pred = read_gt_pred()
     res, cm = my_eval(gt, pred)
-    print(res)
-    get_confusion_matrix_image(cm, mode='precision')
-    plt.savefig('res/cm_precision.pdf')
-    get_confusion_matrix_image(cm, mode='recall')
-    plt.savefig('res/cm_recall.pdf')
+    _, _, age, gender = read_ecg()
+    # by gender
+    g1 = (gender=='M')
+    g2 = (gender=='F')
+    res, cm = my_eval(gt[g1], pred[g1])
+    res, cm = my_eval(gt[g2], pred[g2])
+    print(np.sum(g1), np.sum(g2))
+    # by age
+    g1 = (age < 18)
+    g2 = np.logical_and(age >= 18, age < 65)
+    g3 = (age >= 65)
+    res, cm = my_eval(gt[g1], pred[g1])
+    res, cm = my_eval(gt[g2], pred[g2])
+    res, cm = my_eval(gt[g3], pred[g3])
+    print(np.sum(g1), np.sum(g2), np.sum(g3))
 
     ### case study
-#     pid, ecg_data = read_ecg()
+#     pid, ecg_data, _, _ = read_ecg()
 #     n_samples = ecg_data.shape[0]
 #     yes_pid = set([])
 #     for i in tqdm(range(n_samples)):
