@@ -20,28 +20,43 @@ class MyDataset(Dataset):
         self.label = self.alter_label(label)
 
     def __getitem__(self, index):
-        # label type --> float
+        #return (torch.tensor(self.data[index], dtype=torch.float), torch.tensor(self.label[index], dtype=torch.long))
         return (torch.tensor(self.data[index], dtype=torch.float), torch.tensor(self.label[index], dtype=torch.float))
 
     def __len__(self):
         return len(self.data)
 
     def alter_label(self, labels):
-        out_labels = np.zeros_like(labels)
-        out_labels = out_labels[:, :3]
+        # classfication
+        #out_labels = np.zeros_like(labels)
+        # ordinal
+        out_labels = np.zeros_like(np.arange(labels.shape[0]*3).reshape(labels.shape[0], 3))
+        print(out_labels.shape)
         for i in range(labels.shape[0]):
-            ### 正常
-            if list(labels[i])==[0, 0, 0, 1]:
+            ### normal
+            if labels[i] == 0:
+                # ordinal
                 out_labels[i] = np.array([0,0,0])
-            ### 轻度
-            elif list(labels[i])==[0, 0, 1, 0]:
+                # classification
+                #out_labels[i] = 0
+            ### low risk
+            elif labels[i] ==  1:
+                # ordinal
                 out_labels[i] = np.array([1, 0, 0])
-            ### 中度
-            elif list(labels[i])==[0, 1, 0, 0]:
-                out_labels = np.array([1, 1, 0])
-            ### 危急
-            elif list(labels[i])==[1, 0, 0, 0]:
-                out_labels = np.array([1, 1, 1])
+                # classification
+                #out_labels[i] = 1
+            ### medium risk
+            elif labels[i] == 2:
+                # ordinal
+                out_labels[i] = np.array([1, 1, 0])
+                # classification
+                #out_labels[i] = 2
+            ### high risk
+            elif labels[i]== 3:
+                # ordinal
+                out_labels[i] = np.array([1, 1, 1])
+                # regression/classification
+                #out_labels[i] = 3
         return out_labels
 
 class MyConv1dPadSame(nn.Module):
@@ -111,6 +126,7 @@ class MyMaxPool1dPadSame(nn.Module):
     
 class Swish(nn.Module):
     def forward(self, x):
+
         return x * torch.sigmoid(x)
 
 class BasicBlock(nn.Module):
@@ -311,29 +327,42 @@ class BasicStage(nn.Module):
 
         return out
 
-class Net1D(nn.Module):
-    """
-    Input:
-        X: (n_samples, n_channel, n_length)
-        Y: (n_samples)
-        
-    Output:
-        out: (n_samples)
-        
-    params:
-        in_channels
-        base_filters
-        filter_list: list, filters for each stage
-        m_blocks_list: list, number of blocks of each stage
-        kernel_size
-        stride
-        groups_width
-        n_stages
-        n_classes
-        use_bn
-        use_do
+class ShallowNet(nn.Module):
 
-    """
+    def __init__(self, in_channels, base_filters, kernel_size, stride, n_classes, use_bn=True, use_do=True):
+        super(ShallowNet, self).__init__()
+        self.in_channels = in_channels
+        self.kernel_size = kernel_size
+        self.base_filters = base_filters
+        self.stride = stride
+        self.n_classes = n_classes
+        self.use_bn = use_bn
+        self.use_do = use_do
+
+        # first conv
+        self.first_conv = MyConv1dPadSame(
+            in_channels=in_channels,
+            out_channels=self.base_filters,
+            kernel_size=self.kernel_size,
+            stride=2)
+        self.first_bn = nn.BatchNorm1d(base_filters)
+        self.first_activation = Swish()
+
+        self.dense = nn.Linear(in_channels, n_classes)
+
+    def forward(self, x):
+        out = x
+
+        out = self.first_conv(out)
+        if self.use_bn:
+            out = self.first_bn(out)
+        out = self.first_activation(out)
+
+        out = out.mean(-1)
+        out = self.dense(out)
+        return out
+
+class Net1D(nn.Module):
 
     def __init__(self, in_channels, base_filters, ratio, filter_list, m_blocks_list, kernel_size, stride, groups_width, n_classes, use_bn=True, use_do=True, verbose=False):
         super(Net1D, self).__init__()
@@ -384,7 +413,7 @@ class Net1D(nn.Module):
             in_channels = out_channels
 
         # final prediction
-        self.dense = nn.Linear(in_channels, n_classes-1)
+        self.dense = nn.Linear(in_channels, n_classes)
 
     def forward(self, x):
         out = x
