@@ -1,0 +1,72 @@
+,diagnostic_class,diagnostic_subclass,description,riskscore,riskrank,Statement Category,SCP-ECG Statement Description
+NDT,STTC,STTC,non-diagnostic T abnormalities,1,,other ST-T descriptive statements,non-diagnostic T abnormalities
+NST_,STTC,NST_,non-specific ST changes,1,,Basic roots for coding ST-T changes and abnormalities,non-specific ST changes
+DIG,STTC,STTC,digitalis-effect,2,,other ST-T descriptive statements,suggests digitalis-effect
+LNGQT,STTC,STTC,long QT-interval,3,,other ST-T descriptive statements,long QT-interval
+NORM,NORM,NORM,normal ECG,0,0,Normal/abnormal,normal ECG
+IMI,MI,IMI,inferior myocardial infarction,3,,Myocardial Infarction,inferior myocardial infarction
+ASMI,MI,AMI,anteroseptal myocardial infarction,3,,Myocardial Infarction,anteroseptal myocardial infarction
+LVH,HYP,LVH,left ventricular hypertrophy,2,,Ventricular Hypertrophy,left ventricular hypertrophy
+LAFB,CD,LAFB/LPFB,left anterior fascicular block,1,,Intraventricular and intra-atrial Conduction disturbances,left anterior fascicular block
+ISC_,STTC,ISC_,non-specific ischemic,1,,Basic roots for coding ST-T changes and abnormalities,ischemic ST-T changes
+IRBBB,CD,IRBBB,incomplete right bundle branch block,1,,Intraventricular and intra-atrial Conduction disturbances,incomplete right bundle branch block
+1AVB,CD,_AVB,first degree AV block,1,,"Sinus node dysfunction, atrial and AV-conduction defects",first degree AV block
+IVCD,CD,IVCD,non-specific intraventricular conduction disturbance (block),2,,Intraventricular and intra-atrial Conduction disturbances,non-specific intraventricular conduction disturbance
+ISCAL,STTC,ISCA,ischemic in anterolateral leads,2,,ischemic ST-T changes,in anterolateral leads
+CRBBB,CD,CRBBB,complete right bundle branch block,1,,Intraventricular and intra-atrial Conduction disturbances,(complete) right bundle branch block
+CLBBB,CD,CLBBB,complete left bundle branch block,2,,Intraventricular and intra-atrial Conduction disturbances,(complete) left bundle branch block
+ILMI,MI,IMI,inferolateral myocardial infarction,3,,Myocardial Infarction,inferolateral myocardial infarction
+LAO/LAE,HYP,LAO/LAE,left atrial overload/enlargement,1,,Atrial statements,left atrial overload/enlargement
+AMI,MI,AMI,anterior myocardial infarction,3,,Myocardial Infarction,anterior myocardial infarction
+ALMI,MI,AMI,anterolateral myocardial infarction,3,,Myocardial Infarction,anterolateral myocardial infarction
+ISCIN,STTC,ISCI,ischemic in inferior leads,2,,ischemic ST-T changes,in inferior leads
+INJAS,MI,AMI,subendocardial injury in anteroseptal leads,2,,ischemic ST-T changes compatible with subendocardial injury,in anteroseptal leads
+LMI,MI,LMI,lateral myocardial infarction,3,,Myocardial Infarction,lateral myocardial infarction
+ISCIL,STTC,ISCI,ischemic in inferolateral leads,2,,ischemic ST-T changes,in inferolateral leads
+LPFB,CD,LAFB/LPFB,left posterior fascicular block,1,,Intraventricular and intra-atrial Conduction disturbances,left posterior fascicular block
+ISCAS,STTC,ISCA,ischemic in anteroseptal leads,2,,ischemic ST-T changes,in anteroseptal leads
+INJAL,MI,AMI,subendocardial injury in anterolateral leads,3,,ischemic ST-T changes compatible with subendocardial injury,in anterolateral leads
+ISCLA,STTC,ISCA,ischemic in lateral leads,1,,ischemic ST-T changes,in lateral leads
+RVH,HYP,RVH,right ventricular hypertrophy,1,,Ventricular Hypertrophy,right ventricular hypertrophy
+ANEUR,STTC,STTC,ST-T changes compatible with ventricular aneurysm,3,,other ST-T descriptive statements,ST-T changes compatible with ventricular aneurysm
+RAO/RAE,HYP,RAO/RAE,right atrial overload/enlargement,1,,Atrial statements,right atrial overload/enlargement
+EL,STTC,STTC,electrolytic disturbance or drug (former EDIS),2,,physiopathological nature of ST-T changes,compatible with electrolyte abnormalities
+WPW,CD,WPW,Wolf-Parkinson-White syndrome,3,,Intraventricular and intra-atrial Conduction disturbances,Wolff-Parkinson-White syndrome
+ILBBB,CD,ILBBB,incomplete left bundle branch block,1,,Intraventricular and intra-atrial Conduction disturbances,incomplete left bundle branch block
+IPLMI,MI,IMI,inferoposterolateral myocardial infarction,3,,Myocardial Infarction,inferoposterolateral myocardial infarction
+ISCAN,STTC,ISCA,ischemic in anterior leads,2,,ischemic ST-T changes,in anterior leads
+IPMI,MI,IMI,inferoposterior myocardial infarction,3,,Myocardial Infarction,inferoposterior myocardial infarction
+SEHYP,HYP,SEHYP,septal hypertrophy,1,,Ventricular Hypertrophy,septal hypertrophy
+INJIN,MI,IMI,subendocardial injury in inferior leads,2,,ischemic ST-T changes compatible with subendocardial injury,in inferior leads
+INJLA,MI,AMI,subendocardial injury in lateral leads,2,,ischemic ST-T changes compatible with subendocardial injury,in lateral leads
+PMI,MI,PMI,posterior myocardial infarction,3,,Myocardial Infarction,posterior myocardial infarction
+3AVB,CD,_AVB,third degree AV block,3,,"Sinus node dysfunction, atrial and AV-conduction defects",third degree AV block
+INJIL,MI,IMI,subendocardial injury in inferolateral leads,2,,ischemic ST-T changes compatible with subendocardial injury,in inferolateral leads
+2AVB,CD,_AVB,second degree AV block,2,,"Sinus node dysfunction, atrial and AV-conduction defects",second degree AV block
+ABQRS,,,abnormal QRS,1,,Normal/abnormal,abnormal QRS
+PVC,,,ventricular premature complex,2,,Statements related to ectopic rhythm abnormalities,ventricular premature complex (beat)
+STD_,,,non-specific ST depression,1,,Basic roots for coding ST-T changes and abnormalities,non-specific ST depression
+VCLVH,,,voltage criteria (QRS) for left ventricular hypertrophy,2,,Ventricular Hypertrophy,voltage criteria (QRS) for left ventricular hypertrophy
+QWAVE,,,Q waves present,2,,Other QRS morphology descriptive statements,Q waves present
+LOWT,,,low amplitude T-waves,1,,other ST-T descriptive statements,low amplitude T-waves
+NT_,,,non-specific T-wave changes,0,,Basic roots for coding ST-T changes and abnormalities,non-specific T-wave changes
+PAC,,,atrial premature complex,1,,Statements related to ectopic rhythm abnormalities,atrial premature complex (beat)
+LPR,,,prolonged PR interval,1,,Statements related to impulse formation (abnormalities),Prolonged PR interval
+INVT,,,inverted T-waves,1,,other ST-T descriptive statements,inverted T-waves
+LVOLT,,,low QRS voltages in the frontal and horizontal leads,1,,Other QRS morphology descriptive statements,low QRS voltages in the frontal and horizontal leads
+HVOLT,,,high QRS voltage,1,,Other QRS morphology descriptive statements,high QRS voltage
+TAB_,,,T-wave abnormality,1,,Basic roots for coding ST-T changes and abnormalities,T-wave abnormality
+STE_,,,non-specific ST elevation,1,,Basic roots for coding ST-T changes and abnormalities,non-specific ST elevation
+PRC(S),,,premature complex(es),2,,Statements related to ectopic rhythm abnormalities,premature complex(es)
+SR,,,sinus rhythm,0,,Statements related to impulse formation (abnormalities),sinus rhythm
+AFIB,,,atrial fibrillation,2,,Statements related to impulse formation (abnormalities),atrial fibrillation
+STACH,,,sinus tachycardia,1,,Statements related to impulse formation (abnormalities),sinus tachycardia
+SARRH,,,sinus arrhythmia,1,,Statements related to impulse formation (abnormalities),sinus arrhythmia
+SBRAD,,,sinus bradycardia,1,,Statements related to impulse formation (abnormalities),sinus bradycardia
+PACE,,,normal functioning artificial pacemaker,1,,Pacemaker types and pacemaker function,normal functioning artificial pacemaker
+SVARR,,,supraventricular arrhythmia,2,,Statements related to impulse formation (abnormalities),supraventricular arrhythmia
+BIGU,,,"bigeminal pattern (unknown origin, SV or Ventricular)",2,,Statements related to ectopic rhythm abnormalities,"bigeminal pattern (unknown origin, SV or Ventricular)"
+AFLT,,,atrial flutter,2,,Statements related to impulse formation (abnormalities),atrial flutter
+SVTAC,,,supraventricular tachycardia,2,,Statements related to impulse formation (abnormalities),supraventricular tachycardia
+PSVT,,,paroxysmal supraventricular tachycardia,2,,Statements related to impulse formation (abnormalities),paroxysmal supraventricular tachycardia
+TRIGU,,,"trigeminal pattern (unknown origin, SV or Ventricular)",2,,Statements related to ectopic rhythm abnormalities,"trigeminal pattern (unknown origin, SV or Ventricular)"
