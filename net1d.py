@@ -1,6 +1,10 @@
 """
 a modularized deep neural network for 1-d signal data, pytorch version
  
+The search stratagy is based on: 
+Radosavovic, I., Kosaraju, R. P., Girshick, R., He, K., & Dollár, P. (2020). 
+Designing Network Design Spaces. Retrieved from http://arxiv.org/abs/2003.13678
+
 Shenda Hong, Mar 2020
 """
 

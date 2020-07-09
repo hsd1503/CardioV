@@ -1,5 +1,4 @@
-# Electrocardiogram Risk Score
+# Estimating Critical Value from Electrocardiogram using a Deep Ordinal Convolutional Neural Network
 
-## Dataset
+Preprint submitted to Artificial Intelligence in Medicine.
 
-todo
