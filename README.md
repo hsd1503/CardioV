@@ -1,6 +1,6 @@
-# Estimating critical values from electrocardiogram using a deep ordinal convolutional neural network
+# CardioV: Estimating critical values from electrocardiogram using a deep ordinal convolutional neural network
 
-Wei, G., Di, X., Zhang, W. et al. Estimating critical values from electrocardiogram using a deep ordinal convolutional neural network. BMC Med Inform Decis Mak 22, 295 (2022). https://doi.org/10.1186/s12911-022-02035-w
+Guodong Wei, Xinxin Di, Wenrui Zhang, Shijia Geng, Deyun Zhang, Kai Wang, Zhaoji Fu, Shenda Hong. Estimating Critical Values from Electrocardiogram using a Deep Ordinal Convolutional Neural Network. BMC Medical Informatics and Decision Making 22, 295 (2022). https://doi.org/10.1186/s12911-022-02035-w
 
 ## What we do?
 
